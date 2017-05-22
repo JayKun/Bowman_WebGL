@@ -231,6 +231,23 @@ Declare_Any_Class( "Bee_Scene",  // An example of drawing a hierarchical object 
         this.shapes.tree.draw(graphics_state, model_transform, this.green_solid);
     }
 
+     /**STONES**/
+     model_transform=mult(translation(12, -4 , 1), scale(.5, .5, .5));
+     this.shapes.stone1.draw(graphics_state, model_transform, this.yellow_clay);
+
+     model_transform=mult(translation(12.5, -4 , 3), scale(.5, .5, .5));
+     this.shapes.stone2.draw(graphics_state, model_transform, this.yellow_clay);
+
+     model_transform=mult(translation(12.5, -4 , 6), scale(.5, .5, .5));
+     this.shapes.stone2.draw(graphics_state, model_transform, this.yellow_clay);
+
+
+     model_transform=mult(translation(-10, -4 , 1), scale(.5, .5, .5));
+     this.shapes.stone3.draw(graphics_state, model_transform, this.yellow_clay);
+
+     model_transform=mult(translation(-9, -4 , 8), scale(.5, .5, .5));
+     this.shapes.stone2.draw(graphics_state, model_transform, this.yellow_clay);
+
     /**ARROW**/
     if(this.x > 6)
       this.x=6;
