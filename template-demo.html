@@ -17,7 +17,7 @@ index.html - The web page document containing the canvas (drawing surface), that
       for( let s of shaders )        contexts["main_canvas"].shaders_in_use [ s ] = ( new window[s]( contexts["main_canvas"].gl ) );   
       
                                   // IMPORTANT: -- You have to include all your new image files in the following array:
-      var texture_files_to_load = [ "text.png", "stars.png", "earth.gif", "dummy_wood.jpg", "cloud.jpg" , "grass.jpg"];     // Put all our texture images in the GPU.
+      var texture_files_to_load = [ "text.png", "stars.png", "earth.gif", "dummy_wood.jpg", "cloud.jpg" , "grass.jpg", "rocky.jpg", "fire.png"];     // Put all our texture images in the GPU.
       for( let f of texture_files_to_load ) contexts["main_canvas"].textures_in_use[ f ] = ( new Texture( contexts["main_canvas"].gl, f, true ) );      
                                                                                       // We instantiate some of our custom "Scene_Component" subclasses and register
       var scene_components = [ "Debug_Screen", "Example_Camera", "Flag_Toggler" ];    // objects to their master "Canvas_Manager" object -- which WebGL calls

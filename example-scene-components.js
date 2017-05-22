@@ -67,24 +67,31 @@ Declare_Any_Class( "Bee_Scene",  // An example of drawing a hierarchical object 
   { 'construct'( context )
       { 
       var shapes = {   "dummy": new Shape_From_File( "dummy_obj.obj" ),
-                        "tree": new Shape_From_File( "lowtree.obj" ),
+                       "tree": new Shape_From_File( "lowtree.obj" ),
+                       "stone1": new Shape_From_File( "stone1.obj" ),
+                       "stone2": new Shape_From_File( "stone2.obj" ),
+                       "stone3": new Shape_From_File( "stone3.obj" ),
+                       "grass": new Shape_From_File("grass.obj"),
                        "sky": new Grid_Sphere(30, 30 ),
+                       "sphere": new Grid_Sphere(30, 30 ),
                        "arrow_body":new Capped_Cylinder(20,20),
                        "ground": new Square() ,
                        "bow_segment": new Capped_Cylinder(20, 20),
-                       "arrow_head": new Cube(),
+                       "arrow_head": new Tri(),
+                       "cube": new Tri(),
                        "test": new Surface_Of_Revolution( 10, 10, [ vec3( 1, 0, 0 ), vec3( 0, 1, 0 ), vec3( 0, 0, 1 ), vec3( 0, 0, 2 ) ], 45, [ [ 0, 7 ] [ 0, 7 ] ] ) 
                    };
         this.submit_shapes( context, shapes );
         
         this.define_data_members( { 
                                     tick:0,
-                                    x: -1,
+                                    x: 0,
                                     y: 1,
                                     z: 12,
                                     angle: 0,
                                     xp: -1,
                                     shoot:false,
+                                    fire_arrow:false,
                                     yellow_clay: context.shaders_in_use["Phong_Model"].material( Color(  1,  1, .3, 1 ), .2, 1, .7, 40 ),
                                     green_solid: context.shaders_in_use["Phong_Model"].material( Color( .3, .8, .2, 1 ), .2, 1,  1, 40 ), 
                                     orangePlastic  : context.shaders_in_use["Phong_Model" ].material( Color( 1,.5,.3, 1 ), .4, .8, .4, 20 ),
@@ -94,23 +101,77 @@ Declare_Any_Class( "Bee_Scene",  // An example of drawing a hierarchical object 
                                     cloud        : context.shaders_in_use["Phong_Model"].material( Color( 0, 0, 0, 1 ), 1, 0, 0, 40, context.textures_in_use["cloud.jpg"]),
                                     purplePlastic: context.shaders_in_use["Phong_Model" ].material( Color( .9,.5,.9, 1 ), .4, .4, .8, 40 ),
                                     wood  : context.shaders_in_use["Phong_Model" ].material( Color( 0,0,0,1 ), 1, 0, 0, 40, context.textures_in_use["dummy_wood.jpg"]),
+                                    rocky : context.shaders_in_use["Phong_Model" ].material( Color( 0,0,0,1 ), 1, 0, 0, 40, context.textures_in_use["rocky.jpg"]),
                                     grass  : context.shaders_in_use["Phong_Model" ].material( Color( 0,0, 0, 1 ), 1, 0, 0, 40, context.textures_in_use["grass.jpg"]),
+                                    fire  : context.shaders_in_use["Phong_Model" ].material( Color( 0,0, 0, 1 ), 1, 0, 0, 40, context.textures_in_use["fire.png"]),
                                     stars  : context.shaders_in_use["Phong_Model" ].material( Color( 0,0, 0, 1 ), 1, 0, 0, 40, context.textures_in_use["stars.png"] ) } );
       },
       'init_keys'( controls )   // init_keys():  Define any extra keyboard shortcuts here
       { 
         controls.add( "l", this, function() { this.x +=1; } ); controls.add( "j", this, function() { this.x -=1; } );
         controls.add( "i", this, function() { this.angle +=1; } ); controls.add( "k", this, function() { this.angle -=1; } );
-        controls.add( "0", this, function() { this.shoot = true; } ); 
-
+        controls.add( "0", this, function() { this.shoot = true; } );  controls.add( "r", this, function() { this.shoot = false; } ); 
+        controls.add( "9", this, function() { this.fire_arrow = true; } ); 
       },
 
       'update_strings'( debug_screen_object )   // Strings that this Scene_Component contributes to the UI:
       { debug_screen_object.string_map["tick"]              = "Frame: " + this.tick++;
         debug_screen_object.string_map["text_scroll_index"] = "Text scroll index: " + this.start_index;
       },
+
+      'draw_target'(graphics_state, x , y ,z){
+        var t = radians(graphics_state.animation_time/50);
+        // Draw Target Body
+        var model_transform=mult(translation(0, 0, -40), rotation(360*Math.abs(Math.sin(t)), 0, 1, 0));
+        model_transform=mult(model_transform, translation(x, y, z));
+        body_origin=model_transform;
+        //body_origin=mult(body_origin, rotat(10*Math.sin(x*t), Math.sin(t-y), 0) );
+        this.shapes.sphere.draw(graphics_state, body_origin, this.purplePlastic);
+
+        //Draw Target Left Wing
+        var left_wing_hinge=mult(body_origin, translation(0, 0, 1));
+        left_wing_hinge=mult(left_wing_hinge, rotation(30*Math.cos(t*10), -1, 0, 0))
+        model_transform=mult(left_wing_hinge, translation(0, 0, 3));
+        model_transform=mult(model_transform, scale(1, 0.1, 3));
+        this.shapes.cube.draw(graphics_state, model_transform, this.redPlastic);
+        model_transform=mult(left_wing_hinge, translation(0, 0, 6));
+        model_transform=mult(model_transform, rotation(20*Math.sin(t*10), 1, 0, 0));
+        this.shapes.arrow_head.draw(graphics_state, mult(model_transform, scale(1, 0.1, 1)), this.orangePlastic);
+
+        //Draw Target Right Wing
+        var right_wing_hinge=mult(body_origin, translation(0, 0, -1));
+        right_wing_hinge=mult(right_wing_hinge, rotation(30*Math.cos(t*10), 1, 0, 0))
+        model_transform=mult(right_wing_hinge, translation(0, 0, -3));
+        model_transform=mult(model_transform, scale(1, 0.1, 3));
+        this.shapes.cube.draw(graphics_state, model_transform, this.redPlastic);
+        model_transform=mult(right_wing_hinge, translation(0, 0, -6));
+        model_transform=mult(model_transform, rotation(180 + 20*Math.sin(t*10), -1, 0, 0));
+        this.shapes.arrow_head.draw(graphics_state, mult(model_transform, scale(1, 0.1, 1)), this.orangePlastic);
+
+        return body_origin;
+      },
+
+      'check_if_colliding'( a, models )   // Collision detection function
+      {         // Nothing collides with itself
+        for(let b of models){
+        if(b==a) continue;
+        let T=mult(inverse(a), b);  
+          for( let p of this.shapes.sphere.positions)                                      // For each vertex in that b,
+          { 
+            //let Tp = T*p;                    // Apply a_inv*b coordinate frame shift
+           let Tp = T*p; 
+             if( dot( Tp, Tp) )
+              return true;     // Check if in that coordinate frame it penetrates the unit sphere at the origin.     
+          }
+        }
+        return false;
+      },
+
     'display'( graphics_state )
       { 
+    /**COLLIDING BODIES DECLARATION**/
+    var bodies =[]; 
+    var t = graphics_state.animation_time/1000;
 
     /**SKY**/
     var model_transform=mult(translation(0, -5, 0), rotation(-20, 0, 1, 0)); 
@@ -118,35 +179,93 @@ Declare_Any_Class( "Bee_Scene",  // An example of drawing a hierarchical object 
     this.shapes.sky.draw(graphics_state, model_transform, this.cloud);
 
     /**GROUND**/    
-    model_transform = identity(); 
-    model_transform=mult(model_transform, translation(0,-5,0));
+    model_transform=mult(identity() , translation(0,-5,0));
     model_transform=mult(model_transform, rotation(90,1,0,0));
-    this.shapes.ground.draw(graphics_state, mult(model_transform, scale(100, 100, 100)), this.grass);
+    model_transform=mult(model_transform, scale(100, 100, 100));
+    this.shapes.ground.draw(graphics_state, model_transform, this.grass);
+
+    /**GRASS**/
+      for (var i = 1; i < 15; i++) {
+        model_transform=mult(translation(-13 + i%3 , -3.6, i*1.2-5), rotation(90, 0, 1, 0));
+        model_transform=mult(model_transform, scale(1, 0.5, 1));
+        this.shapes.grass.draw(graphics_state, model_transform, this.green_solid);
+    }
+
+        for (var i = 1; i < 15; i++) {
+        model_transform=mult(translation(13 + i%3 , -3.6, i*1.2-5), rotation(90, 0, 1, 0));
+        model_transform=mult(model_transform, scale(1, 0.5, 1));
+        this.shapes.grass.draw(graphics_state, model_transform, this.green_solid);
+    }
 
     /**DUMMY**/
-    model_transform=mult(translation(0, -2, -30), rotation(90, 1, 0 ,0 )); 
+    model_transform=mult(translation(-3, 10, -30), rotation(90, 1, 0 ,0 )); 
     model_transform=mult(model_transform, rotation( -90, 1, 0, 0 ));
-    this.shapes.dummy.draw( graphics_state, mult( model_transform, scale(2, 2 , 2) ), this.wood);
+    model_transform=mult(model_transform, scale(10, 10, 10));
+    this.shapes.dummy.draw( graphics_state, model_transform, this.wood);
+    bodies.push(model_transform);
+
+    /**TARGETS**/
+    bodies.push(this.draw_target(graphics_state, 5, 20, -20));
+    bodies.push(this.draw_target(graphics_state, -10, 2, -16));
 
     /**Trees**/
     for (var i = 1; i < 10; i++) {
-        model_transform=mult(translation(10 , -3.6, i), scale(1, 1.2, 1));
+        model_transform=mult(translation(15 + i%2 , -2, i*1.3), scale(2, 2, 2));
         this.shapes.tree.draw(graphics_state, model_transform, this.green_solid);
     }
+    for (var i = 1; i < 10; i++) {
+        model_transform=mult(translation(16 + i%2 , -2, i*1.3), scale(2, 2, 2));
+        this.shapes.tree.draw(graphics_state, model_transform, this.green_solid);
+    }
+
 
     for (var i = 1; i < 10; i++) {
-        model_transform=mult(translation(-10 , -3.6, i), rotation(90, 0, 1, 0));
-        model_transform=mult(model_transform, scale(1, 1.2, 1));
+        model_transform=mult(translation(-16 + i%2 , -2, i*1.3), rotation(90, 0, 1, 0));
+        model_transform=mult(model_transform, scale(2, 2, 2));
         this.shapes.tree.draw(graphics_state, model_transform, this.green_solid);
     }
 
-     /**BOW SET UP**/
-      model_transform=translation(this.x+1, 2.5*(Math.tan(radians(this.angle))), 12);
+        for (var i = 1; i < 10; i++) {
+        model_transform=mult(translation(-17 + i%2 , -2, i*1.3), rotation(90, 0, 1, 0));
+        model_transform=mult(model_transform, scale(2, 2, 2));
+        this.shapes.tree.draw(graphics_state, model_transform, this.green_solid);
+    }
+
+    /**ARROW**/
+    if(this.x > 6)
+      this.x=6;
+    else if(this.x < -6)
+      this.x = -6;
+    model_transform=translation( this.x, this.y-4 , this.z);
+    model_transform=mult(model_transform, translation(0,0,5));
+    if(Math.abs(this.angle) < 45 && this.angle >= 0 )
+      model_transform=mult(model_transform, rotation(this.angle, 1, 0, 0 ))
+    else if(this.angle <= 0)
+      this.angle=0; 
+    else
+      this.angle=45;
+    model_transform=mult(model_transform, translation(0, 0 ,-5));
+    if(this.shoot){
+      model_transform=mult(model_transform, rotation(this.angle*(t/50), -1, 0, 0));
+    }
+    model_transform=mult(model_transform, rotation(180, 0, 1, 0));
+
+    if(this.fire_arrow)
+      this.shapes.arrow_head.draw( graphics_state, mult(model_transform, scale(.5, .5, .25)), this.fire);
+    else
+      this.shapes.arrow_head.draw( graphics_state, mult(model_transform, scale(.25, .25, .25)), this.stars);
+    bodies.push(model_transform);
+
+    model_transform=mult(model_transform,translation(0,0,-2.5));
+    this.shapes.arrow_body.draw(graphics_state, mult(model_transform, scale(.1, .1, 5)), this.wood);
+
+
+      /**BOW SET UP**/
+      model_transform=translation(this.x, 2.5*(Math.tan(radians(this.angle))), 12);
       model_transform=mult(model_transform, translation(0, -3.2, 0));
       model_transform=mult(model_transform, rotation(90, 0, 1, 0));
-      model_transform=mult(model_transform, scale(0.3, 0.3, 0.5));
-      this.shapes.bow_segment.draw(graphics_state, model_transform, this.stars);
-      model_transform=mult(model_transform, scale(1/3, 1/3, 1));
+      model_transform=mult(model_transform, scale(0.1, 0.1, 0.5));
+      this.shapes.bow_segment.draw(graphics_state, model_transform, this.redPlastic);
 
       for (var i = 0; i < 7; i++) {
         model_transform=mult(model_transform, scale(1/0.1, 1/0.1, 2));
@@ -157,20 +276,19 @@ Declare_Any_Class( "Bee_Scene",  // An example of drawing a hierarchical object 
         model_transform=mult(model_transform, rotation(90, 0, 1, 0));
         model_transform=mult(model_transform, scale(0.1, 0.1, 0.5));
         this.shapes.bow_segment.draw(graphics_state, model_transform, this.orangePlastic);
-      }
+      }   
       model_transform=mult(model_transform, scale(1/0.1, 1/0.1, 2));
       model_transform=mult(model_transform, rotation(-90, 0, 1, 0));
       model_transform=mult(model_transform, translation(0.5, 0 ,0));
       model_transform=mult(model_transform, scale(0.5, 0.5, 1));
-      this.shapes.bow_segment.draw(graphics_state, model_transform, this.stars);
+      this.shapes.arrow_head.draw(graphics_state, model_transform, this.fire_arrow? this.purplePlastic: this.redPlastic);
 
       /**BOW SET UP**/
-      model_transform=translation(this.x + 1, 2.5*(Math.tan(radians(this.angle))) , 12);
+      model_transform=translation(this.x, 2.5*(Math.tan(radians(this.angle))) , 12);
       model_transform=mult(model_transform, translation(0, -3.2, 0));
       model_transform=mult(model_transform, rotation(90, 0, 1, 0));
-      model_transform=mult(model_transform, scale(0.3, 0.3, 0.5));
-      this.shapes.bow_segment.draw(graphics_state, model_transform, this.stars);
-      model_transform=mult(model_transform, scale(1/3, 1/3, 1));
+      model_transform=mult(model_transform, scale(0.1, 0.1, 0.5));
+      this.shapes.bow_segment.draw(graphics_state, model_transform, this.redPlastic);
 
       for (var i = 0; i < 7; i++) {
         model_transform=mult(model_transform, scale(1/0.1, 1/0.1, 2));
@@ -186,68 +304,40 @@ Declare_Any_Class( "Bee_Scene",  // An example of drawing a hierarchical object 
       model_transform=mult(model_transform, rotation(-90, 0, 1, 0));
       model_transform=mult(model_transform, translation(-0.5, 0 ,0));
       model_transform=mult(model_transform, scale(0.5, 0.5, 1));
-      this.shapes.bow_segment.draw(graphics_state, model_transform, this.stars);
-
-    /**ARROW**/
-    model_transform=translation( this.x + 1, this.y-4 , this.z);
-    model_transform=mult(model_transform, translation(0,0,5));
-    if(Math.abs(this.angle) < 45 && this.angle >= 0 )
-      model_transform=mult(model_transform, rotation(this.angle, 1, 0, 0 ))
-    else if(this.angle <= 0)
-      this.angle=0; 
-    else
-      this.angle=45;
-    model_transform=mult(model_transform, translation(0, 0 ,-5));
-    model_transform=mult(model_transform, rotation(180, 0, 1, 0));    
-    this.shapes.arrow_head.draw( graphics_state, mult(model_transform, scale(.25, .25, .25)), this.redPlastic);
-    
-    model_transform=mult(model_transform,translation(0,0,-2.5));
-    this.shapes.arrow_body.draw(graphics_state, mult(model_transform, scale(.1, .1, 5)), this.wood);
-
+      this.shapes.arrow_head.draw(graphics_state, model_transform, this.fire_arrow? this.purplePlastic: this.redPlastic);
 
     /**CAMERA**/
-    var eye=vec3(this.x+1, this.y, this.shoot ? this.z : 30);
-    var at=vec3(this.x+1, this.y, this.shoot ? this.z - 10: 10);
+    var eye=vec3(this.x, this.y, this.shoot ? this.z : 30);
+    var at=vec3(this.x, this.y, this.shoot ? this.z - 10: 10);
     var up = vec3(0, 1, 0);
     graphics_state.camera_transform = lookAt(eye, at, up);
-
-		// if( ( graphics_state.animation_time / 1000 ) % 2 < 1 ) // (alternating each second)
-		// 	graphics_state.camera_transform = lookAt( [0,0,10], [1,1,5], [0,1,0] ); // Pass in eye position, at
-		// else // position, and up vector.
-		//graphics_state.camera_transform = lookAt( [1,0,0], [0,0,-4], [0,1,0] );
     
-
-
-
-
     if(this.shoot){
         // Let Arrow fly
         var g = 0.5;
         var theta = radians(this.angle);
         var v=1;
-        var t = graphics_state.animation_time/10000; 
+        t = graphics_state.animation_time/10000; 
         this.z=this.z-v*Math.cos(theta)*t; 
         this.y=this.y + v*t*Math.sin(theta) -1/2*g*t;
         //this.y=this.y*(graphics_state.animation_time)
         // Let Camera follow
     }
 
-
-
-
-
-    // var lala= false;
-    // if(this.shoot)
-    //   lala=true;
-    // if(lala)
-    //   {
-    //     this.xp=this.x;
-    //     this.shapes.ground.draw( graphics_state, mult(translation( this.xp+(graphics_state.animation_time/2)%10, this.y , 0), scale(0.1, 0.1, 0.1)), this.redPlastic);
-    //     this.xp++;
-    //   }
+    else{
+      this.z=12;
+      this.y=1;
+    }
         
         graphics_state.lights = [ new Light( vec4(  0,  30,  34, 1 ), Color( 0, .4, 0, 1 ), 100 ),
                                   new Light( vec4( -10, -20, -14, 0 ), Color( 1, 1, .3, 1 ), 100    ) ];
+
+   for( let c of bodies )                                      // Collision process starts here
+        if( this.check_if_colliding( c, bodies ) )          // Send the two bodies and the collision shape
+        { //c.material = this.shader.material( Color( 1,0,0,1 ), .1, 1, 1, 40, this.redPlastic );        // If we get here, we collided, so turn red
+          this.shoot=false;
+        }   
+
 
       }
   }, Scene_Component );
@@ -569,31 +659,3 @@ Declare_Any_Class( "Object_Collision_Scene",    // Scenario 2: Detect when some 
         }   
       }
   }, Simulation_Scene_Superclass );
-
-// Declare_Any_Class( "Superclass",
-//   { 'construct'( context )
-//       { context.globals.animate = true;
-//         this.define_data_members( { bodies: [], shader: context.shaders_in_use["Phong_Model"], stars: context.textures_in_use["stars.png"] } );
-        
-//         var shapes = { "ground"      : new Square(),
-//                        "arrows"      : new Axis_Arrows(),
-//                        "capped"      : new Capped_Cylinder( 4, 12 ),
-//                        "axis"        : new Axis_Arrows(),
-//                        "prism"       :     Capped_Cylinder   .prototype.auto_flat_shaded_version( 10, 10 ),
-//                        "gem"         :     Subdivision_Sphere.prototype.auto_flat_shaded_version( 2 ),
-//                        "gem2"        :     Torus             .prototype.auto_flat_shaded_version( 20, 20 ) };
-//         this.submit_shapes( context, shapes );
-//       },
-//     'random_shape'() { return Object.values( this.shapes )[ Math.floor( 7*Math.random() ) ] },
-//     'random_material'() { return this.shader.material( Color( 1,Math.random(),Math.random(),1 ), .1, 1, 1, 40, this.stars ) },
-//     'display'( graphics_state )
-//       { graphics_state.lights = [ new Light( vec4(5,1,1,0), Color( 1, 1, 1, 1 ), 10000 ) ];
-                                              
-//         if( Math.random() < .02 ) this.bodies.splice( 0, this.bodies.length/4 ); // Sometimes we delete some so they can re-generate as new ones
-//         for( let b of this.bodies )
-//         { b.shape.draw( graphics_state, mult( b.location_matrix, scale( b.scale ) ), b.material ); // Draw each shape at its current location 
-//           b.advance( b, graphics_state.animation_delta_time );
-//         }
-//         this.simulate();    // This is an abstract class; call the subclass's version
-//       },
-//   }, Scene_Component );

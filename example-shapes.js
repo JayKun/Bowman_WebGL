@@ -285,7 +285,7 @@ Declare_Any_Class( "Rounded_Capped_Cylinder",   // An alternative without three 
       { Surface_Of_Revolution.prototype.insert_transformed_copy_into( this, 
           [ rows, columns, [ vec3( 0, 0, .5 ), vec3( 1, 0, .5 ), vec3( 1, 0, -.5 ), vec3( 0, 0, -.5 ) ] ] ); } }, Shape ) 
     
-Declare_Any_Class( "Cube",    // A cube inserts six square strips into its lists.
+Declare_Any_Class( "Tri",    // A cube inserts six square strips into its lists.
   {
          populate()  
       { 
@@ -313,7 +313,7 @@ Declare_Any_Class( "Cube",    // A cube inserts six square strips into its lists
 
 
 
-      } 
+} 
     },Shape )
   
 Declare_Any_Class( "Axis_Arrows",   // Made out of a lot of various primitives.
@@ -374,14 +374,13 @@ Declare_Any_Class( "Text_Line", // Draws a rectangle textured with images of ASC
       }
   }, Shape )
 
-
-// Declare_Any_Class( "Ramp",    // A cube inserts six square strips into its lists.
-//   { 
-//     populate()  
-//       { 
-//         var square_transform=scale(1,1,1);
-//         Square.prototype.insert_transformed_copy_into( this, [], square_transform );  
-//         square_transform=mult(translation(1, 0, 0), rotation(45, 0, 1, 0));
-//         //Square.prototype.insert_transformed_copy_into( this, [], square_transform );  
-//       } 
-//     },Shape )
+Declare_Any_Class( "Cube",    // A cube inserts six square strips into its lists.
+  { populate()  
+      { for( var i = 0; i < 3; i++ )                    
+          for( var j = 0; j < 2; j++ )
+          { var square_transform = mult( rotation( i == 0 ? 90 : 0, vec3( 1, 0, 0 ) ), rotation( 180 * j - ( i == 1 ? 90 : 0 ), vec3( 0, 1, 0 ) ) );
+                square_transform = mult( square_transform, translation(0, 0, 1) );
+            Square.prototype.insert_transformed_copy_into( this, [], square_transform );             
+          } 
+      } }, Shape )
+  
