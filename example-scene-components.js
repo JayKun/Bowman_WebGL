@@ -84,7 +84,7 @@ Declare_Any_Class( "Bee_Scene",  // An example of drawing a hierarchical object 
         this.submit_shapes( context, shapes );
         
         this.define_data_members( { 
-                                    tick:0,
+                                    state: context.globals.graphics_state,
                                     x: 0,
                                     y: 1,
                                     z: 12,
@@ -114,15 +114,15 @@ Declare_Any_Class( "Bee_Scene",  // An example of drawing a hierarchical object 
         controls.add( "9", this, function() { this.fire_arrow = true; } ); 
       },
 
-      'update_strings'( debug_screen_object )   // Strings that this Scene_Component contributes to the UI:
-      { debug_screen_object.string_map["tick"]              = "Frame: " + this.tick++;
-        debug_screen_object.string_map["text_scroll_index"] = "Text scroll index: " + this.start_index;
-      },
+      'update_strings'( debug_screen_object)   // Strings that this Scene_Component contributes to the UI:
+      { 
+          debug_screen_object.string_map["framerate"]= "Frame Rate: "+ 1000/this.state.animation_delta_time;
+      },  
 
       'draw_target'(graphics_state, x , y ,z){
-        var t = radians(graphics_state.animation_time/50);
+        var t = (graphics_state.animation_time);
         // Draw Target Body
-        var model_transform=mult(translation(0, 0, -40), rotation(360*Math.abs(Math.sin(t)), 0, 1, 0));
+        var model_transform=mult(translation(0, 0, -40), rotation(graphics_state.animation_time/20, 0, 1, 0));
         model_transform=mult(model_transform, translation(x, y, z));
         body_origin=model_transform;
         //body_origin=mult(body_origin, rotat(10*Math.sin(x*t), Math.sin(t-y), 0) );
@@ -185,14 +185,14 @@ Declare_Any_Class( "Bee_Scene",  // An example of drawing a hierarchical object 
     this.shapes.ground.draw(graphics_state, model_transform, this.grass);
 
     /**GRASS**/
-      for (var i = 1; i < 15; i++) {
-        model_transform=mult(translation(-13 + i%3 , -3.6, i*1.2-5), rotation(90, 0, 1, 0));
+      for (var i = 1; i < 8; i++) {
+        model_transform=mult(translation(-13 + i%3 , -3.6, i*1.5-5), rotation(90, 0, 1, 0));
         model_transform=mult(model_transform, scale(1, 0.5, 1));
         this.shapes.grass.draw(graphics_state, model_transform, this.green_solid);
     }
 
-        for (var i = 1; i < 15; i++) {
-        model_transform=mult(translation(13 + i%3 , -3.6, i*1.2-5), rotation(90, 0, 1, 0));
+      for (var i = 1; i < 8; i++) {
+        model_transform=mult(translation(13 + i%3 , -3.6, i*1.5-5), rotation(90, 0, 1, 0));
         model_transform=mult(model_transform, scale(1, 0.5, 1));
         this.shapes.grass.draw(graphics_state, model_transform, this.green_solid);
     }
@@ -209,24 +209,23 @@ Declare_Any_Class( "Bee_Scene",  // An example of drawing a hierarchical object 
     bodies.push(this.draw_target(graphics_state, -10, 2, -16));
 
     /**Trees**/
-    for (var i = 1; i < 10; i++) {
-        model_transform=mult(translation(15 + i%2 , -2, i*1.3), scale(2, 2, 2));
+    for (var i = 1; i < 5; i++) {
+        model_transform=mult(translation(15 + i%2 , -2, i*2), scale(2, 2, 2));
         this.shapes.tree.draw(graphics_state, model_transform, this.green_solid);
     }
-    for (var i = 1; i < 10; i++) {
-        model_transform=mult(translation(16 + i%2 , -2, i*1.3), scale(2, 2, 2));
+    for (var i = 1; i < 5; i++) {
+        model_transform=mult(translation(16 + i%2 , -2, i*2), scale(2, 2, 2));
         this.shapes.tree.draw(graphics_state, model_transform, this.green_solid);
     }
 
-
-    for (var i = 1; i < 10; i++) {
-        model_transform=mult(translation(-16 + i%2 , -2, i*1.3), rotation(90, 0, 1, 0));
+    for (var i = 1; i < 5; i++) {
+        model_transform=mult(translation(-16 + i%2 , -2, i*2), rotation(90, 0, 1, 0));
         model_transform=mult(model_transform, scale(2, 2, 2));
         this.shapes.tree.draw(graphics_state, model_transform, this.green_solid);
     }
 
-        for (var i = 1; i < 10; i++) {
-        model_transform=mult(translation(-17 + i%2 , -2, i*1.3), rotation(90, 0, 1, 0));
+        for (var i = 1; i < 5; i++) {
+        model_transform=mult(translation(-17 + i%2 , -2, i*2), rotation(90, 0, 1, 0));
         model_transform=mult(model_transform, scale(2, 2, 2));
         this.shapes.tree.draw(graphics_state, model_transform, this.green_solid);
     }
@@ -241,7 +240,6 @@ Declare_Any_Class( "Bee_Scene",  // An example of drawing a hierarchical object 
      model_transform=mult(translation(12.5, -4 , 6), scale(.5, .5, .5));
      this.shapes.stone2.draw(graphics_state, model_transform, this.yellow_clay);
 
-
      model_transform=mult(translation(-10, -4 , 1), scale(.5, .5, .5));
      this.shapes.stone3.draw(graphics_state, model_transform, this.yellow_clay);
 
@@ -253,6 +251,8 @@ Declare_Any_Class( "Bee_Scene",  // An example of drawing a hierarchical object 
       this.x=6;
     else if(this.x < -6)
       this.x = -6;
+    if(this.y < -4)
+      this.shoot=false;
     model_transform=translation( this.x, this.y-4 , this.z);
     model_transform=mult(model_transform, translation(0,0,5));
     if(Math.abs(this.angle) < 45 && this.angle >= 0 )
@@ -277,7 +277,7 @@ Declare_Any_Class( "Bee_Scene",  // An example of drawing a hierarchical object 
     this.shapes.arrow_body.draw(graphics_state, mult(model_transform, scale(.1, .1, 5)), this.wood);
 
 
-      /**BOW SET UP**/
+      /**RIGHT PORTION BOW SET UP**/
       model_transform=translation(this.x, 2.5*(Math.tan(radians(this.angle))), 12);
       model_transform=mult(model_transform, translation(0, -3.2, 0));
       model_transform=mult(model_transform, rotation(90, 0, 1, 0));
@@ -298,9 +298,9 @@ Declare_Any_Class( "Bee_Scene",  // An example of drawing a hierarchical object 
       model_transform=mult(model_transform, rotation(-90, 0, 1, 0));
       model_transform=mult(model_transform, translation(0.5, 0 ,0));
       model_transform=mult(model_transform, scale(0.5, 0.5, 1));
-      this.shapes.arrow_head.draw(graphics_state, model_transform, this.fire_arrow? this.purplePlastic: this.redPlastic);
+      this.shapes.arrow_head.draw(graphics_state, model_transform, this.fire_arrow? this.purplePlastic: this.stars);
 
-      /**BOW SET UP**/
+      /**LEFT PORTION BOW SET UP**/
       model_transform=translation(this.x, 2.5*(Math.tan(radians(this.angle))) , 12);
       model_transform=mult(model_transform, translation(0, -3.2, 0));
       model_transform=mult(model_transform, rotation(90, 0, 1, 0));
@@ -321,7 +321,7 @@ Declare_Any_Class( "Bee_Scene",  // An example of drawing a hierarchical object 
       model_transform=mult(model_transform, rotation(-90, 0, 1, 0));
       model_transform=mult(model_transform, translation(-0.5, 0 ,0));
       model_transform=mult(model_transform, scale(0.5, 0.5, 1));
-      this.shapes.arrow_head.draw(graphics_state, model_transform, this.fire_arrow? this.purplePlastic: this.redPlastic);
+      this.shapes.arrow_head.draw(graphics_state, model_transform, this.fire_arrow? this.purplePlastic: this.stars);
 
     /**CAMERA**/
     var eye=vec3(this.x, this.y, this.shoot ? this.z : 30);

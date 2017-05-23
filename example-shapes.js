@@ -17,65 +17,7 @@
 
 // 1.  TUTORIAL SHAPES:     ------------------------------------------------------------------------------------------------------------------------------
 
-  // *********** TRIANGLE ***********
-Declare_Any_Class( "Triangle",    // First, the simplest possible Shape – one triangle.  It has 3 vertices, each having their own 3D position, normal
-  { 'populate'()                  // vector, and texture-space coordinate.
-      { this.positions      = [ vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) ];   // Specify the 3 vertices -- the point cloud that our Triangle needs.
-        this.normals        = [ vec3(0,0,1), vec3(0,0,1), vec3(0,0,1) ];   // ...
-        this.texture_coords = [ vec2(0,0),   vec2(1,0),   vec2(0,1)   ];   // ...
-        this.indices        = [ 0, 1, 2 ];                                 // Index into our vertices to connect them into a whole Triangle.
-      }
-  }, Shape )
 
-Declare_Any_Class( "Triangle1",    // First, the simplest possible Shape – one triangle.  It has 3 vertices, each having their own 3D position, normal
-  { 'populate'()                  // vector, and texture-space coordinate.
-      { this.positions      = [ vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) ];   // Specify the 3 vertices -- the point cloud that our Triangle needs.
-        this.normals        = [ vec3(0,1,0), vec3(0,1,0), vec3(0,1,0) ];   // ...
-        this.texture_coords = [ vec2(0,0),   vec2(1,0),   vec2(0,1)   ];   // ...
-        this.indices        = [ 0, 1, 2 ];                                 // Index into our vertices to connect them into a whole Triangle.
-      }
-  }, Shape )
-
-Declare_Any_Class( "Triangle2",    // First, the simplest possible Shape – one triangle.  It has 3 vertices, each having their own 3D position, normal
-  { 'populate'()                  // vector, and texture-space coordinate.
-      { this.positions      = [ vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) ];   // Specify the 3 vertices -- the point cloud that our Triangle needs.
-        this.normals        = [ vec3(0,-1,0), vec3(0,-1,0), vec3(0,-1,0) ];   // ...
-        this.texture_coords = [ vec2(0,0),   vec2(1,0),   vec2(0,1)   ];   // ...
-        this.indices        = [ 0, 1, 2 ];                                 // Index into our vertices to connect them into a whole Triangle.
-      }
-  }, Shape )
-//*****************Trying random shapes**********
-
-  // *********** SQUARE ***********
-Declare_Any_Class( "Square",    // A square, demonstrating shared vertices.  On any planar surface, the interior edges don't make any important seams.
-  { 'populate'()                // In these cases there's no reason not to re-use values of the common vertices between triangles.  This makes all the
-      {                         // vertex arrays (position, normals, etc) smaller and more cache friendly.
-        this.positions     .push( vec3(-1,-1,0), vec3(1,-1,0), vec3(-1,1,0), vec3(1,1,0) ); // Specify the 4 vertices -- the point cloud that our Square needs.
-        this.normals       .push( vec3(1,0,1), vec3(1,0,1), vec3(1,0,1), vec3(1,0,1) );     // ...
-        this.texture_coords.push( vec2(0,0),   vec2(1,0),   vec2(0,1),   vec2(1,1)   );     // ...
-        this.indices       .push( 0, 1, 2,     1, 3, 2 );                                   // Two triangles this time, indexing into four distinct vertices.
-      }
-  }, Shape )
-
-Declare_Any_Class( "Square2",    // A square, demonstrating shared vertices.  On any planar surface, the interior edges don't make any important seams.
-  { 'populate'()                // In these cases there's no reason not to re-use values of the common vertices between triangles.  This makes all the
-      {                         // vertex arrays (position, normals, etc) smaller and more cache friendly.
-        this.positions     .push( vec3(-1,-1,0), vec3(1,-1,0), vec3(-1,1,0), vec3(1,1,0) ); // Specify the 4 vertices -- the point cloud that our Square needs.
-        this.normals       .push( vec3(-1,0,1), vec3(-1,0,1), vec3(-1,0,1), vec3(-1,0,1) );     // ...
-        this.texture_coords.push( vec2(0,0),   vec2(1,0),   vec2(0,1),   vec2(1,1)   );     // ...
-        this.indices       .push( 0, 1, 2,     1, 3, 2 );                                   // Two triangles this time, indexing into four distinct vertices.
-      }
-  }, Shape )
-
-Declare_Any_Class( "Square3",    // A square, demonstrating shared vertices.  On any planar surface, the interior edges don't make any important seams.
-  { 'populate'()                // In these cases there's no reason not to re-use values of the common vertices between triangles.  This makes all the
-      {                         // vertex arrays (position, normals, etc) smaller and more cache friendly.
-        this.positions     .push( vec3(-1,-1,0), vec3(1,-1,0), vec3(-1,1,0), vec3(1,1,0) ); // Specify the 4 vertices -- the point cloud that our Square needs.
-        this.normals       .push( vec3(0,0,-1), vec3(0,0,-1), vec3(0,0,-1), vec3(0,0,-1) );     // ...
-        this.texture_coords.push( vec2(0,0),   vec2(1,0),   vec2(0,1),   vec2(1,1)   );     // ...
-        this.indices       .push( 0, 1, 2,     1, 3, 2 );                                   // Two triangles this time, indexing into four distinct vertices.
-      }
-  }, Shape )
   
   // *********** TETRAHEDRON ***********
 Declare_Any_Class( "Tetrahedron",              // A demo of flat vs smooth shading.  Also our first 3D, non-planar shape.
@@ -285,6 +227,72 @@ Declare_Any_Class( "Rounded_Capped_Cylinder",   // An alternative without three 
       { Surface_Of_Revolution.prototype.insert_transformed_copy_into( this, 
           [ rows, columns, [ vec3( 0, 0, .5 ), vec3( 1, 0, .5 ), vec3( 1, 0, -.5 ), vec3( 0, 0, -.5 ) ] ] ); } }, Shape ) 
     
+/**BASE SHAPES**/
+  // *********** TRIANGLE ***********
+Declare_Any_Class( "Triangle",    // First, the simplest possible Shape – one triangle.  It has 3 vertices, each having their own 3D position, normal
+  { 'populate'()                  // vector, and texture-space coordinate.
+      { this.positions      = [ vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) ];   // Specify the 3 vertices -- the point cloud that our Triangle needs.
+        this.normals        = [ vec3(0,0,1), vec3(0,0,1), vec3(0,0,1) ];   // ...
+        this.texture_coords = [ vec2(0,0),   vec2(1,0),   vec2(0,1)   ];   // ...
+        this.indices        = [ 0, 1, 2 ];                                 // Index into our vertices to connect them into a whole Triangle.
+      }
+  }, Shape )
+
+Declare_Any_Class( "Triangle1",    // First, the simplest possible Shape – one triangle.  It has 3 vertices, each having their own 3D position, normal
+  { 'populate'()                  // vector, and texture-space coordinate.
+      { this.positions      = [ vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) ];   // Specify the 3 vertices -- the point cloud that our Triangle needs.
+        this.normals        = [ vec3(0,1,0), vec3(0,1,0), vec3(0,1,0) ];   // ...
+        this.texture_coords = [ vec2(0,0),   vec2(1,0),   vec2(0,1)   ];   // ...
+        this.indices        = [ 0, 1, 2 ];                                 // Index into our vertices to connect them into a whole Triangle.
+      }
+  }, Shape )
+
+Declare_Any_Class( "Triangle2",    // First, the simplest possible Shape – one triangle.  It has 3 vertices, each having their own 3D position, normal
+  { 'populate'()                  // vector, and texture-space coordinate.
+      { this.positions      = [ vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) ];   // Specify the 3 vertices -- the point cloud that our Triangle needs.
+        this.normals        = [ vec3(0,-1,0), vec3(0,-1,0), vec3(0,-1,0) ];   // ...
+        this.texture_coords = [ vec2(0,0),   vec2(1,0),   vec2(0,1)   ];   // ...
+        this.indices        = [ 0, 1, 2 ];                                 // Index into our vertices to connect them into a whole Triangle.
+      }
+  }, Shape )
+//*****************Trying random shapes**********
+
+  // *********** SQUARE ***********
+Declare_Any_Class( "Square",    // A square, demonstrating shared vertices.  On any planar surface, the interior edges don't make any important seams.
+  { 'populate'()                // In these cases there's no reason not to re-use values of the common vertices between triangles.  This makes all the
+      {                         // vertex arrays (position, normals, etc) smaller and more cache friendly.
+        this.positions     .push( vec3(-1,-1,0), vec3(1,-1,0), vec3(-1,1,0), vec3(1,1,0) ); // Specify the 4 vertices -- the point cloud that our Square needs.
+        this.normals       .push( vec3(1,0,1), vec3(1,0,1), vec3(1,0,1), vec3(1,0,1) );     // ...
+        this.texture_coords.push( vec2(0,0),   vec2(1,0),   vec2(0,1),   vec2(1,1)   );     // ...
+        this.indices       .push( 0, 1, 2,     1, 3, 2 );                                   // Two triangles this time, indexing into four distinct vertices.
+      }
+  }, Shape )
+
+Declare_Any_Class( "Square2",    // A square, demonstrating shared vertices.  On any planar surface, the interior edges don't make any important seams.
+  { 'populate'()                // In these cases there's no reason not to re-use values of the common vertices between triangles.  This makes all the
+      {                         // vertex arrays (position, normals, etc) smaller and more cache friendly.
+        this.positions     .push( vec3(-1,-1,0), vec3(1,-1,0), vec3(-1,1,0), vec3(1,1,0) ); // Specify the 4 vertices -- the point cloud that our Square needs.
+        this.normals       .push( vec3(-1,0,1), vec3(-1,0,1), vec3(-1,0,1), vec3(-1,0,1) );     // ...
+        this.texture_coords.push( vec2(0,0),   vec2(10,0),   vec2(0,10),   vec2(10,10)   );     // ...
+        this.indices       .push( 0, 1, 2,     1, 3, 2 );                                   // Two triangles this time, indexing into four distinct vertices.
+      }
+  }, Shape )
+
+Declare_Any_Class( "Square3",    // A square, demonstrating shared vertices.  On any planar surface, the interior edges don't make any important seams.
+  { 'populate'()                // In these cases there's no reason not to re-use values of the common vertices between triangles.  This makes all the
+      {                         // vertex arrays (position, normals, etc) smaller and more cache friendly.
+        this.positions     .push( vec3(-1,-1,0), vec3(1,-1,0), vec3(-1,1,0), vec3(1,1,0) ); // Specify the 4 vertices -- the point cloud that our Square needs.
+        this.normals       .push( vec3(0,0,-1), vec3(0,0,-1), vec3(0,0,-1), vec3(0,0,-1) );     // ...
+        this.texture_coords.push( vec2(0,0),   vec2(.1,0),   vec2(0,.1),   vec2(.1,.1)   );     // ...
+        this.indices       .push( 0, 1, 2,     1, 3, 2 );                                   // Two triangles this time, indexing into four distinct vertices.
+      }
+  }, Shape )
+
+
+
+/**CUSTOM SHAPE**/
+
+
 Declare_Any_Class( "Tri",    // A cube inserts six square strips into its lists.
   {
          populate()  
