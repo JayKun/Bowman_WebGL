@@ -11,7 +11,7 @@ index.html - The web page document containing the canvas (drawing surface), that
 <script type="text/javascript"> "use strict" 
   window.onload = function init()           // ********************* OUR WHOLE PROGRAM'S ENTRY POINT ********************* 
     {                                                                                         // Firstly, browsers support something like up to 16 instances of WebGL 
-      window.contexts = { main_canvas: new Canvas_Manager( "gl-canvas", Color( 0, 0, 0.6, 0.5 ) ) }; // per page.  Construct a Canvas_Manager, which instances a WebGL context
+      window.contexts = { main_canvas: new Canvas_Manager( "gl-canvas", Color( 0.03, 0.23, 0.57, 1 ) ) }; // per page.  Construct a Canvas_Manager, which instances a WebGL context
                                                                                                  // for our main canvas.  Set your background color here too.     
       var shaders = [ "Phong_Model", "Funny_Shader", "Fake_Bump_Map" ];                          // Now put all our shader programs in the GPU.
       for( let s of shaders )        contexts["main_canvas"].shaders_in_use [ s ] = ( new window[s]( contexts["main_canvas"].gl ) );   
@@ -21,7 +21,7 @@ index.html - The web page document containing the canvas (drawing surface), that
       for( let f of texture_files_to_load ) contexts["main_canvas"].textures_in_use[ f ] = ( new Texture( contexts["main_canvas"].gl, f, true ) );      
                                                                                       // We instantiate some of our custom "Scene_Component" subclasses and register
       var scene_components = [ "Debug_Screen", "Example_Camera", "Flag_Toggler" ];    // objects to their master "Canvas_Manager" object -- which WebGL calls
-      if( demos[0] == "" ) scene_components.push( "Example_Animation" );              // upon every time a draw / keyboard / mouse event happens.
+      if( demos[0] == "" ) scene_components.push( "Bowman" );              // upon every time a draw / keyboard / mouse event happens.
       else for( let d of demos ) scene_components.push( d.replace(/-/g,"_") );  // (This line of code can parse the URL and instantiate the demos named there)
       for( let s of scene_components ) contexts["main_canvas"].register_scene_component( new window[s]( contexts["main_canvas"] ) ); // Register the demos with 
                                                                                                                                      // their Canvas_Manager.
@@ -36,12 +36,12 @@ index.html - The web page document containing the canvas (drawing surface), that
 </script>
 </head><body>More demos: 
 
-<span style="padding-left:20px;"></span><a href="?Surfaces_Tester">         Surfaces_Tester</a>
+<span style="padding-left:20px;"></span>
 <span style="padding-left:20px;"></span><a href="?Bowman">               Bowman</a>
-<span style="padding-left:20px;"></span><a href="?Star">                    Star</a>
-<span style="padding-left:20px;"></span><a href="?Bump_Map_And_Mesh_Loader">Bump_Map_And_Mesh_Loader</a>
-<span style="padding-left:20px;"></span><a href="?Ground_Collision_Scene">  Ground_Collision_Scene</a>
-<span style="padding-left:20px;"></span><a href="?Object_Collision_Scene">  Object_Collision_Scene</a><p>
+<span style="padding-left:20px;"></span>
+<span style="padding-left:20px;"></span>
+<span style="padding-left:20px;"></span>
+<span style="padding-left:20px;"></span>
 <canvas id="gl-canvas" width="800" height="600"></canvas><p>
 <a href="#" onclick='document.getElementById( "instructions" ).style = "display:block"; this.style = "display:none";'>
 Click for instructions </a><div id="instructions" style = "display:none">

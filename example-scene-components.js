@@ -1,104 +1,57 @@
-// UCLA's Graphics Example Code (Javascript and C++ translations available), by Garett for CS174a.
-// example-scene-components.js - The Scene_Component subclasses defined here describe different independent animation processes that you 
-// want to fire off each frame, by defining a display event and how to react to key and mouse input events.  Create your own subclasses, 
-// and fill them in with all your shape drawing calls and any extra key / mouse controls.
+var audio1 = new Audio('epic.wav');
+audio1.play();
 
-  // **********************************************************************************
-  // First go down to the following class's display() method to see where the sample 
-  // shapes you see drawn are coded, and a good place to begin filling in your own code.
-
-Declare_Any_Class( "Example_Animation",  // An example of a Scene_Component that our class Canvas_Manager can manage.  This one draws the scene's 3D shapes.
-  { 'construct'( context )
-      { var shapes = { 'triangle'        : new Triangle(),                               // At the beginning of our program, instantiate all shapes we plan to use,
-                       'strip'           : new Square(),                                // each with only one instance in the graphics card's memory.
-                       'bad_tetrahedron' : new Tetrahedron( false ),                   // For example we would only create one "cube" blueprint in the GPU, but then 
-                       'tetrahedron'     : new Tetrahedron( true ),                   // re-use it many times per call to display to get multiple cubes in the scene.
-                       'windmill'        : new Windmill( 10 ) };
-        this.submit_shapes( context, shapes );
-        // *** Materials: *** Declare new ones as temps when needed; they're just cheap wrappers for some numbers.  1st parameter:  Color (4 floats in RGBA format),
-        // 2nd: Ambient light, 3rd: Diffuse reflectivity, 4th: Specular reflectivity, 5th: Smoothness exponent, 6th: Optional texture object, leave off for un-textured.
-        this.define_data_members( { purplePlastic: context.shaders_in_use["Phong_Model" ].material( Color( .9,.5,.9, 1 ), .4, .4, .8, 40 ),
-                                    greyPlastic  : context.shaders_in_use["Phong_Model" ].material( Color( .5,.5,.5, 1 ), .4, .8, .4, 20 ),   // Smaller exponent means 
-                                    blueGlass    : context.shaders_in_use["Phong_Model" ].material( Color( .5,.5, 1,.2 ), .4, .8, .4, 40 ),     // a bigger shiny spot.
-                                    fire         : context.shaders_in_use["Funny_Shader"].material() } ); 
-      },
-    'display'( graphics_state )
-      { var model_transform = identity();             // We have to reset model_transform every frame.
-        
-        // *** Lights: *** Values of vector or point lights over time.  Two different lights *per shape* supported; more requires changing a number in the vertex shader.
-        graphics_state.lights = [ new Light( vec4(  30,  30,  34, 1 ), Color( 0, .4, 0, 1 ), 100000 ),      // Arguments to construct a Light(): Light source position or 
-                                  new Light( vec4( -10, -20, -14, 0 ), Color( 1, 1, .3, 1 ), 100    ) ];    // vector (homogeneous coordinates), color, and size.  
-        /**********************************
-        Start coding down here!!!!
-        **********************************/                                     // From here on down it's just some example shapes drawn 
-                                                                                // for you -- freely replace them with your own!
-        model_transform = mult( model_transform, translation( 0, 5, 0 ) );
-        this.shapes.triangle       .draw( graphics_state, model_transform,                      this.purplePlastic );
-        
-        model_transform = mult( model_transform, translation( 0, -2, 0 ) );
-        this.shapes.strip          .draw( graphics_state, model_transform,                      this.greyPlastic   );
-        
-        var t = graphics_state.animation_time/1000,   tilt_spin   = rotation( 700*t, [          .1,          .8,             .1 ] ),
-                                                      funny_orbit = rotation(  90*t, [ Math.cos(t), Math.sin(t), .7*Math.cos(t) ] );
-
-        // Many shapes can share influence from the same pair of lights, but they don't have to.  All the following shapes will use these lights instead of the above ones.
-        graphics_state.lights = [ new Light( mult_vec( tilt_spin, vec4(  30,  30,  34, 1 ) ), Color( 0, .4, 0, 1 ), 100000               ),
-                                  new Light( mult_vec( tilt_spin, vec4( -10, -20, -14, 0 ) ), Color( 1, 1, .3, 1 ), 100*Math.cos( t/10 ) ) ];
-                                  
-        model_transform = mult( model_transform, translation( 0, -2, 0 ) );
-        this.shapes.tetrahedron    .draw( graphics_state, mult( model_transform, funny_orbit ), this.purplePlastic );
-        
-        model_transform = mult( model_transform, translation( 0, -2, 0 ) );
-        this.shapes.bad_tetrahedron.draw( graphics_state, mult( model_transform, funny_orbit ), this.greyPlastic   );
-        
-        model_transform = mult( model_transform, translation( 0, -2, 0 ) );
-        this.shapes.windmill       .draw( graphics_state, mult( model_transform, tilt_spin ),   this.purplePlastic );
-        model_transform = mult( model_transform, translation( 0, -2, 0 ) );
-        this.shapes.windmill       .draw( graphics_state, model_transform,                      this.fire          );
-        model_transform = mult( model_transform, translation( 0, -2, 0 ) );
-        this.shapes.windmill       .draw( graphics_state, model_transform,                      this.blueGlass     );
-      }
-  }, Scene_Component );  // End of class definition
-  
-  // *******************************************************************
-  //  Assignment 1 would fit nicely into the following class definition:
-  
 Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object using a "model_transform" matrix and post-multiplication.
   { 'construct'( context )
       { 
       context.globals.animate = true;
-      var shapes = {   "dummy": new Shape_From_File( "dummy_obj.obj" ),
+      var shapes = {  
                        "tree": new Shape_From_File( "lowtree.obj" ),
                        "stone1": new Shape_From_File( "stone1.obj" ),
                        "stone2": new Shape_From_File( "stone2.obj" ),
                        "stone3": new Shape_From_File( "stone3.obj" ),
                        "grass": new Shape_From_File("grass.obj"),
-                       "sky": new Grid_Sphere(30, 30 ),
                        "sphere": new Grid_Sphere(30, 30 ),
                        "arrow_body":new Capped_Cylinder(20,20),
                        "ground": new Square() ,
                        "bow_segment": new Capped_Cylinder(20, 20),
                        "arrow_head": new Tri(),
                        "cube": new Tri(),
-                       "test": new Surface_Of_Revolution( 10, 10, [ vec3( 1, 0, 0 ), vec3( 0, 1, 0 ), vec3( 0, 0, 1 ), vec3( 0, 0, 2 ) ], 45, [ [ 0, 7 ] [ 0, 7 ] ] ),
-                       "score": new Text_Line( 35 )
+                       "collider" : new Subdivision_Sphere(1),
+                       "text": new Text_Line( 35 )
                    };
         this.submit_shapes( context, shapes );
         
         this.define_data_members( { 
+                                    /*target data*/
+                                    x1:0,
+                                    y1:0,
+                                    z1:0,
+                                    x2:0,
+                                    y2:0,
+                                    z2:0,
+                                    start:false,
+                                    targets:[],
+                                    
+                                    /*game data*/
+                                    start_game:false,
+                                    arrows_left:5,
+                                    game_over:false,
                                     text_graphics_state: new Graphics_State(),
-                                    score: 0, 
                                     state: context.globals.graphics_state ,
+                                    camera_view:0,
+                                    score: 0, 
+                                    test:0,
+                                    level:1,
 
+                                    /*arrow data*/
                                     arrow_x: 0,
                                     arrow_y: 1,
                                     arrow_z: 12,
                                     angle: 0,
-
-                                    camera_view:0,
-
                                     shoot:false,
                                     fire_arrow:false,
+
                                     yellow_clay: context.shaders_in_use["Phong_Model"].material( Color(  1,  1, .3, 1 ), .2, 1, .7, 40 ),
                                     green_solid: context.shaders_in_use["Phong_Model"].material( Color( .3, .8, .2, 1 ), .2, 1,  1, 40 ), 
                                     orangePlastic  : context.shaders_in_use["Phong_Model" ].material( Color( 1,.5,.3, 1 ), .4, .8, .4, 20 ),
@@ -118,24 +71,29 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
       { 
         controls.add( "l", this, function() { this.arrow_x +=1; } ); controls.add( "j", this, function() { this.arrow_x -=1; } );
         controls.add( "i", this, function() { this.angle +=1; } ); controls.add( "k", this, function() { this.angle -=1; } );
-        controls.add( "0", this, function() { this.shoot = true; } );  controls.add( "r", this, function() { this.shoot = false; } ); 
+        controls.add( "0", this, function() { this.shoot = true; this.arrows_left--;} );  controls.add( "r", this, function() { this.restart_game(); } ); 
         controls.add( "9", this, function() { this.fire_arrow = true; } );
         controls.add( "8", this, function() { this.camera_view = 1; } );
+        controls.add( "Space", this, function() { this.start_game = true; } );
         controls.add( "8", this, function() { this.camera_view = 0; }, {'type':'keyup'} );
+
       },
 
       'update_strings'( debug_screen_object)   // Strings that this Scene_Component contributes to the UI:
       { 
           debug_screen_object.string_map["framerate"]= "Frame Rate: "+ 1000/this.state.animation_delta_time;
+
       },  
 
-      'draw_target'(graphics_state, x , y ,z){  
+      'draw_target'(graphics_state, x ,y ,z){  
         var t = (graphics_state.animation_time);
 
+
         // Draw Target Body
-        var model_transform=mult(translation(0, 0, -40), rotation(t/100, 0, 1, 0));
+        var model_transform=mult(translation(0, 0, -40), this.level==1? translation(x*Math.sin(t/1000),0 ,0):rotation((x-y)*t/20, 0, 1, 0));
         model_transform=mult(model_transform, translation(x, y, z));
-        body_origin=model_transform;
+        model_transform=mult(model_transform, rotation(90, 0 ,1,0));
+        body_origin=mult(model_transform, scale(2,2,2));
         this.shapes.sphere.draw(graphics_state, body_origin, this.purplePlastic);
 
         //Draw Target Left Wing
@@ -160,7 +118,58 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
 
         return body_origin;
       },
+
+      'draw_bow'(graphics_state, arrow_head_transform){
+         /**RIGHT PORTION BOW SET UP**/
+        model_transform=mult(this.shoot? identity():arrow_head_transform, translation(this.arrow_x, 0, 12));
+        model_transform=mult(model_transform, translation(0, -3.2, 0));
+        model_transform=mult(model_transform, rotation(90, 0, 1, 0));
+        model_transform=mult(model_transform, scale(0.1, 0.1, 0.5));
+        this.shapes.bow_segment.draw(graphics_state, model_transform, this.redPlastic);
+
+        for (var i = 0; i < 7; i++) {
+        model_transform=mult(model_transform, scale(1/0.1, 1/0.1, 2));
+        model_transform=mult(model_transform, rotation(-90, 0, 1, 0));
+        model_transorm=mult(model_transform, translation(0.5, 0, 0));
+        model_transform=mult(model_transform, rotation(5, 0, -1, 0));
+        model_transform=mult(model_transform, translation(0.5, 0, 0));
+        model_transform=mult(model_transform, rotation(90, 0, 1, 0));
+        model_transform=mult(model_transform, scale(0.1, 0.1, 0.5));
+        this.shapes.bow_segment.draw(graphics_state, model_transform, this.orangePlastic);
+        }   
+        model_transform=mult(model_transform, scale(1/0.1, 1/0.1, 2));
+        model_transform=mult(model_transform, rotation(-90, 0, 1, 0));
+        model_transform=mult(model_transform, translation(0.5, 0 ,0));
+        model_transform=mult(model_transform, scale(0.5, 0.5, 1));
+        this.shapes.arrow_head.draw(graphics_state, model_transform, this.stars);
+
+        /**LEFT PORTION BOW SET UP**/
+        model_transform=mult(this.shoot? identity():arrow_head_transform,translation(this.arrow_x, 0, 12));
+        model_transform=mult(model_transform, translation(0, -3.2, 0));
+        model_transform=mult(model_transform, rotation(90, 0, 1, 0));
+        model_transform=mult(model_transform, scale(0.1, 0.1, 0.5));
+        this.shapes.bow_segment.draw(graphics_state, model_transform, this.redPlastic);
+
+        for (var i = 0; i < 7; i++) {
+        model_transform=mult(model_transform, scale(1/0.1, 1/0.1, 2));
+        model_transform=mult(model_transform, rotation(-90, 0, 1, 0));
+        model_transorm=mult(model_transform, translation(-0.5, 0, 0));
+        model_transform=mult(model_transform, rotation(5, 0, 1, 0));
+        model_transform=mult(model_transform, translation(-0.5, 0, 0));
+        model_transform=mult(model_transform, rotation(90, 0, 1, 0));
+        model_transform=mult(model_transform, scale(0.1, 0.1, 0.5));
+        this.shapes.bow_segment.draw(graphics_state, model_transform, this.orangePlastic);
+        } 
+        model_transform=mult(model_transform, scale(1/0.1, 1/0.1, 2));
+        model_transform=mult(model_transform, rotation(-90, 0, 1, 0));
+        model_transform=mult(model_transform, translation(-0.5, 0 ,0));
+        model_transform=mult(model_transform, scale(0.5, 0.5, 1));
+        this.shapes.arrow_head.draw(graphics_state, model_transform, this.stars);
+
+      },
+
       'draw_scene'(graphics_state){
+        var t = graphics_state.animation_time/1000;
         /**GROUND**/    
         var model_transform=mult(identity() , translation(0,-5,0));
         model_transform=mult(model_transform, rotation(90,1,0,0));
@@ -216,34 +225,133 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
          this.shapes.stone3.draw(graphics_state, model_transform, this.yellow_clay);
 
          model_transform=mult(translation(-9, -4 , 8), scale(.5, .5, .5));
-         if(this.arrow_x < -1){
-            model_transform=mult(model_transform, rotation(t, 0, 0, 1));
-            model_transform=mult(model_transform, translation(-t, 0, 0));
-         }
          this.shapes.stone2.draw(graphics_state, model_transform, this.yellow_clay);
 
 
 
       },
+      'restart_game' (graphics_state){
+            this.x1=0;
+            this.y1=0;
+            this.z1=0;
+            this.start=false;
+            this.score= 0;
+            this.arrows_left=5,
+            this.target=false;
+            this.arrow_x= 0;
+            this.arrow_y= 1;
+            this.arrow_z= 12;
+            this.angle= 0;
+            this.targets=[];
+            this.camera_view=0;
+            this.shoot=false;
+            this.fire_arrow=false;
+            this.game_over=false;
+            this.level=0;
+      },
+      'game_over_screen'()
+      {
+         var font_scale = scale( .02, .04, 1 );
+
+          model_transform   = mult( translation( -.31, .4, 0 ), scale(.04, .08 , 2));
+          this.shapes.text.set_string( "GAME OVER");  
+          this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
+
+          model_transform   = mult( translation( -.25, .2, 0 ), font_scale );
+          this.shapes.text.set_string( "Your score: " + String(this.score) );
+          this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
+
+          model_transform   = mult( translation( -.3, 0, 0 ), font_scale );
+          this.shapes.text.set_string( "Press r to restart" );
+          this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
+
+      },
+      'start_screen' (){
+
+          /**DISPLAY INSTRUCTIONS**/
+          var font_scale = scale( .02, .04, 1 );
+
+          model_transform   = mult( translation( -.2, .8, 0 ), scale(.04, .08 , 2));
+          this.shapes.text.set_string( "Crossbow");  
+          this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
+
+          model_transform   = mult( translation( -.5, .6, 0 ), scale(.02, .04, 1) );
+          this.shapes.text.set_string( "INSTRUCTIONS :");
+          this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
+
+          model_transform   = mult( translation( -.5, .4, 0 ), font_scale );
+          this.shapes.text.set_string( "Keys j and l to move");
+          this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
+
+          model_transform   = mult( translation( -.5, .3, 0 ), font_scale );
+          this.shapes.text.set_string( "Keys i and k to aim" );
+          this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
+
+          model_transform   = mult( translation( -.5, .2, 0 ), font_scale );
+          this.shapes.text.set_string( "Key 0 to shoot" );
+          this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
+
+          model_transform   = mult( translation( -.5, .1, 0 ), font_scale );
+          this.shapes.text.set_string( "Key 8 to swicth camera view" );
+          this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
+
+          model_transform   = mult( translation( -.5, 0, 0 ), font_scale );
+          this.shapes.text.set_string( "Key 9 to activate fire arrow" );
+          this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
+
+          model_transform   = mult( translation( -.5, -.1, 0 ), font_scale );
+          this.shapes.text.set_string( "Key r to restart" );
+          this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
+
+          model_transform   = mult( translation( -.5, -.3, 0 ), scale(.02, .04, 1) );
+          this.shapes.text.set_string( "Press space to START");
+          this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
+
+
+
+      },
+
+
       'check_if_colliding'(arrow_model, target_model)   // Collision detection function
-      {         // Nothing collides with itself
-        let T=mult(inverse(arrow_model), target_model);  
-          for( let p of this.shapes.sphere.positions)                                      // For each vertex in that b,
-          { 
-           let Tp = T*p; 
-           if(length(Tp) < 1 )
-              return true;     // Check if in that coordinate frame it penetrates the unit sphere at the origin.     
-          }
-        return false;
+      { 
+            var T = mult( inverse(arrow_model), target_model );  // Convert sphere b to a coordinate frame where a is a unit sphere
+            for( let p of  this.shapes.collider.positions)                                      // For each vertex in that b,
+            { 
+              var Tp = mult_vec( T, p.concat(1) ).slice(0,3);                    // Apply a_inv*b coordinate frame shift
+              this.test= dot(Tp, Tp);
+              if( dot( Tp, Tp ) < 50 )   return true;     // Check if in that coordinate frame it penetrates the unit sphere at the origin.     
+            }
+            return false;
       },
 
     'display'( graphics_state )
-      { 
+    { 
+    if(this.arrows_left == -1)
+      this.game_over=true;
+
+    if(this.game_over){
+      this.game_over_screen();
+      return;
+    }
+
+    if(!this.start_game){
+      this.start_screen(); 
+      return;
+    }
     /**DISPLAY SCORE**/
     var font_scale = scale( .02, .04, 1 );
-    model_transform   = mult( translation( .7, .9, 0 ), font_scale );
-    this.shapes.score.set_string( "Score: " + String(this.score) );
-    this.shapes.score.draw( this.text_graphics_state, model_transform, this.text_material );
+    model_transform   = mult( translation( .5, .9, 0 ), font_scale );
+    this.shapes.text.set_string( "Score: " + String(this.score) );
+    this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
+
+    model_transform   = mult( translation( .5, .8, 0 ), font_scale );
+    this.shapes.text.set_string( "Arrows left: " + String(this.arrows_left) );  
+    this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
+
+    model_transform   = mult( translation( .5, .7, 0 ), font_scale );
+    this.shapes.text.set_string( "Level: " + String(this.level) );  
+    this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
+
 
     /**DRAW SCENE**/
     this.draw_scene(graphics_state);
@@ -253,14 +361,24 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
     var t = graphics_state.animation_time/1000;
 
     /**TARGETS**/
-    bodies.push(this.draw_target(graphics_state, 5, 20, -20));
-    bodies.push(this.draw_target(graphics_state, -10, 2, -16));
+    if(!this.start){
+      this.x1=Math.floor(Math.random() * (60)) - 30;
+      this.y1=Math.floor(Math.random() * 20);
+      this.z1=Math.floor(Math.random() * (-30 + 20)) -20;
+      this.x2=Math.floor(Math.random() * (60)) - 30;
+      this.y2=Math.floor(Math.random() * 20);
+      this.z2=Math.floor(Math.random() * (-30 + 20)) -20;
+      this.start=true;
+    }
+
+    this.targets.push(this.draw_target(graphics_state, this.x1, this.y1, this.z1));
+    this.targets.push(this.draw_target(graphics_state, this.x2, this.y2, this.z2));
 
     /**ARROW**/
-    if(this.arrow_x > 6)
-      this.arrow_x=6;
-    else if(this.arrow_x < -6)
-      this.arrow_x = -6;
+    if(this.arrow_x > 7)
+      this.arrow_x=7;
+    else if(this.arrow_x < -7)
+      this.arrow_x = -7;
 
     //Make sure arrow does not go out of bounds
       if(this.arrow_y < -4){
@@ -268,7 +386,7 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
         this.angle=0;
         this.fire_arrow=false;
       }
-      if(this.arrow_z < -50){
+      if(this.arrow_z < -80){
         this.shoot=false;
         this.angle=0;
         this.fire_arrow=false;
@@ -287,66 +405,24 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
         var arrow_head_transform = model_transform; 
         arrow_head_transform=mult(arrow_head_transform, translation(-this.arrow_x, 4-this.arrow_y, -this.arrow_z ));
 
-      if(this.shoot){
-        model_transform=mult(model_transform, rotation(this.angle*(t/20), -1, 0, 0));
-      }
       model_transform=mult(model_transform, rotation(180, 0, 1, 0));
 
-      if(this.fire_arrow)
-        this.shapes.arrow_head.draw( graphics_state, mult(model_transform, scale(.5, .5, .25)), this.fire);
-      else
-        this.shapes.arrow_head.draw( graphics_state, mult(model_transform, scale(.25, .25, .25)), this.stars);
+      var arrow_head;
+      if(this.fire_arrow){
+        arrow_head = mult(model_transform, scale(.5, .5, .25));
+        this.shapes.arrow_head.draw( graphics_state, arrow_head, this.fire);
+      }
+      else{
+        arrow_head = mult(model_transform, scale(.25, .25, .25));
+        this.shapes.arrow_head.draw( graphics_state, arrow_head, this.stars);
+      }
 
       model_transform=mult(model_transform,translation(0,0,-2.5));
-      var arrow_model=model_transform;
       this.shapes.arrow_body.draw(graphics_state, mult(model_transform, scale(.1, .1, 5)), this.wood);
 
-
-      /**RIGHT PORTION BOW SET UP**/
-      model_transform=mult(arrow_head_transform, translation(this.arrow_x, 0, 12));
-      model_transform=mult(model_transform, translation(0, -3.2, 0));
-      model_transform=mult(model_transform, rotation(90, 0, 1, 0));
-      model_transform=mult(model_transform, scale(0.1, 0.1, 0.5));
-      this.shapes.bow_segment.draw(graphics_state, model_transform, this.redPlastic);
-
-      for (var i = 0; i < 7; i++) {
-        model_transform=mult(model_transform, scale(1/0.1, 1/0.1, 2));
-        model_transform=mult(model_transform, rotation(-90, 0, 1, 0));
-        model_transorm=mult(model_transform, translation(0.5, 0, 0));
-        model_transform=mult(model_transform, rotation(5, 0, -1, 0));
-        model_transform=mult(model_transform, translation(0.5, 0, 0));
-        model_transform=mult(model_transform, rotation(90, 0, 1, 0));
-        model_transform=mult(model_transform, scale(0.1, 0.1, 0.5));
-        this.shapes.bow_segment.draw(graphics_state, model_transform, this.orangePlastic);
-      }   
-      model_transform=mult(model_transform, scale(1/0.1, 1/0.1, 2));
-      model_transform=mult(model_transform, rotation(-90, 0, 1, 0));
-      model_transform=mult(model_transform, translation(0.5, 0 ,0));
-      model_transform=mult(model_transform, scale(0.5, 0.5, 1));
-      this.shapes.arrow_head.draw(graphics_state, model_transform, this.fire_arrow? this.purplePlastic: this.stars);
-
-      /**LEFT PORTION BOW SET UP**/
-      model_transform=mult(arrow_head_transform,translation(this.arrow_x, 0, 12));
-      model_transform=mult(model_transform, translation(0, -3.2, 0));
-      model_transform=mult(model_transform, rotation(90, 0, 1, 0));
-      model_transform=mult(model_transform, scale(0.1, 0.1, 0.5));
-      this.shapes.bow_segment.draw(graphics_state, model_transform, this.redPlastic);
-
-      for (var i = 0; i < 7; i++) {
-        model_transform=mult(model_transform, scale(1/0.1, 1/0.1, 2));
-        model_transform=mult(model_transform, rotation(-90, 0, 1, 0));
-        model_transorm=mult(model_transform, translation(-0.5, 0, 0));
-        model_transform=mult(model_transform, rotation(5, 0, 1, 0));
-        model_transform=mult(model_transform, translation(-0.5, 0, 0));
-        model_transform=mult(model_transform, rotation(90, 0, 1, 0));
-        model_transform=mult(model_transform, scale(0.1, 0.1, 0.5));
-        this.shapes.bow_segment.draw(graphics_state, model_transform, this.orangePlastic);
-      } 
-      model_transform=mult(model_transform, scale(1/0.1, 1/0.1, 2));
-      model_transform=mult(model_transform, rotation(-90, 0, 1, 0));
-      model_transform=mult(model_transform, translation(-0.5, 0 ,0));
-      model_transform=mult(model_transform, scale(0.5, 0.5, 1));
-      this.shapes.arrow_head.draw(graphics_state, model_transform, this.fire_arrow? this.purplePlastic: this.stars);
+  /**DRAW BOW**/
+  this.draw_bow(graphics_state, arrow_head_transform);
+     
 
     /**CAMERA**/
 
@@ -365,10 +441,8 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
         // Let Arrow fly
         var g = 0.5;
         var theta = radians(this.angle);
-        var v=1;
-        t = graphics_state.animation_time/10000; 
-        this.arrow_z=this.arrow_z-v*Math.cos(theta)*t; 
-        this.arrow_y=this.arrow_y + v*t*Math.sin(theta) -1/2*g*t;
+        this.arrow_z=this.arrow_z- Math.cos(theta)*1.5; 
+        this.arrow_y=this.arrow_y + 1.5*Math.sin(theta);
     }
 
     else{
@@ -377,17 +451,18 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
     }
         
         graphics_state.lights = [ new Light( vec4(  0,  30,  34, 1 ), Color( 0, .4, 0, 1 ), 100 ),
-                                  new Light( vec4( -10, -20, -14, 0 ), Color( 1, 1, .3, 1 ), 100    ) ];
+                                  new Light( vec4( -10, -20, -14, 0 ), Color( 1, 1, .3, 1 ), 100 ) ];
+        //Check for collision Here
+    for( let b of this.targets)
+    if( this.check_if_colliding( arrow_head, b) )          // Send the two bodies and the collision shape
+      this.score++; 
 
-        // Collision process starts here
-        for(let b of bodies)
-        if( this.check_if_colliding( arrow_model, b ) )          // Send the two bodies and the collision shape
-        {        // If we get here, we collided, so turn red
-          //this.fire_arrow=true;
-        }   
+    if(this.score > 400)
+      this.level=2;
 
 
-      }
+  }
+
   }, Scene_Component );
 
   
@@ -435,7 +510,7 @@ Declare_Any_Class( "Debug_Screen",  // Debug_Screen - An example of a Scene_Comp
           this.shapes.debug_text.set_string( k );
           this.shapes.debug_text.draw( this.graphics_state, model_transform, this.text_material );  // Draw some UI text (the canvas's key controls)
         }
-                var eye=vec3(0, 0, 10);
+        var eye=vec3(0, 0, 10);
         var at=vec3(1,5,10);
         var up = vec3(0, 0, 2);
         lookAt(eye, at, up);
@@ -460,7 +535,7 @@ Declare_Any_Class( "Example_Camera",                  // An example of a Scene_C
         canvas.addEventListener( "mouseout",  ( function(self) { return function(e) { self.mouse.from_center = vec2(); }; } ) (this), false );  // Stop steering if the 
       },                                                                                                                                        // mouse leaves the canvas.
     'init_keys'( controls )   // init_keys():  Define any extra keyboard shortcuts here
-      { controls.add( "Space", this, function() { this.thrust[1] = -1; } );     controls.add( "Space", this, function() { this.thrust[1] =  0; }, {'type':'keyup'} );
+      { //controls.add( "Space", this, function() { this.thrust[1] = -1; } );     controls.add( "Space", this, function() { this.thrust[1] =  0; }, {'type':'keyup'} );
         controls.add( "z",     this, function() { this.thrust[1] =  1; } );     controls.add( "z",     this, function() { this.thrust[1] =  0; }, {'type':'keyup'} );
         controls.add( "w",     this, function() { this.thrust[2] =  1; } );     controls.add( "w",     this, function() { this.thrust[2] =  0; }, {'type':'keyup'} );
         controls.add( "a",     this, function() { this.thrust[0] =  1; } );     controls.add( "a",     this, function() { this.thrust[0] =  0; }, {'type':'keyup'} );
@@ -518,104 +593,7 @@ Declare_Any_Class( "Flag_Toggler",  // A class that just interacts with the keyb
       },
   }, Scene_Component );
   
-Declare_Any_Class( "Surfaces_Tester",
-  { 'construct'( context )
-      { context.globals.animate = true;
-        var shapes = { 'good_sphere' : new Subdivision_Sphere( 4 ),
-                       'box'         : new Cube(),
-                       'strip'       : new Square(),
-                       'septagon'    : new Regular_2D_Polygon(  2,  7 ),
-                       'tube'        : new Cylindrical_Tube  ( 10, 10 ),
-                       'open_cone'   : new Cone_Tip          (  3, 10 ),
-                       'donut'       : new Torus             ( 15, 15 ),
-                       'bad_sphere'  : new Grid_Sphere       ( 10, 10 ),
-                       'cone'        : new Closed_Cone       ( 10, 10 ),
-                       'capped'      : new Capped_Cylinder   (  4, 12 ),
-                       'axis'        : new Axis_Arrows(),
-                       'prism'       :     Capped_Cylinder   .prototype.auto_flat_shaded_version( 10, 10 ),
-                       'gem'         :     Subdivision_Sphere.prototype.auto_flat_shaded_version(  2     ),
-                       'gem2'        :     Torus             .prototype.auto_flat_shaded_version( 20, 20 ),
-                       'swept_curve' : new Surface_Of_Revolution( 10, 10, 
-                                            [ vec3( 2, 0, -1 ), vec3( 1, 0, 0 ), vec3( 1, 0, 1 ), vec3( 0, 0, 2 ) ], 120, [ [ 0, 7 ] [ 0, 7 ] ] ) 
-                     };
-        this.submit_shapes( context, shapes );
-        this.define_data_members( { shader: context.shaders_in_use["Phong_Model"], textures: Object.values( context.textures_in_use ) } );
-      },
-    'draw_all_shapes'( model_transform, graphics_state )
-      { var i = 0, t = graphics_state.animation_time / 1000;
-        
-        for( key in this.shapes )
-        { i++;
-          var funny_function_of_time = 50*t + i*i*Math.cos( t/2 ),
-              random_material        = this.shader.material( Color( (i % 7)/7, (i % 6)/6, (i % 5)/5, 1 ), .2, 1, 1, 40, this.textures[ i % this.textures.length ] )
-              
-          model_transform = mult( model_transform, rotation( funny_function_of_time, i%3 == 0, i%3 == 1, i%3 == 2 ) );   // Irregular motion
-          model_transform = mult( model_transform, translation( 0, -3, 0 ) );
-          this.shapes[ key ].draw( graphics_state, model_transform, random_material );        //  Draw the current shape in the list    
-        }
-        return model_transform;     
-      },
-    'display'( graphics_state )
-      { var model_transform = identity(); 
-        for( var i = 0; i < 7; i++ )                                    // Another example of not every shape owning the same pair of lights:
-        { graphics_state.lights = [ new Light( vec4( i % 7 - 3, i % 6 - 3, i % 5 - 3, 1 ), Color( 1, 0, 0, 1 ), 100000000 ),
-                                    new Light( vec4( i % 6 - 3, i % 5 - 3, i % 7 - 3, 1 ), Color( 0, 1, 0, 1 ), 100000000 ) ];
-        
-          model_transform = this.draw_all_shapes( model_transform, graphics_state );      // *** How to call a function and still have a single matrix state ***
-          model_transform = mult( model_transform, rotation( 360 / 13, 0, 0, 1 ) );
-        }
-      }
-  }, Scene_Component );
-  
-Declare_Any_Class( "Star",    // An example of animating without making any extremely customized primitives.
-  { 'construct'( context )    // Each frame manages to show one million points connected by half as many flat-colored triangles.
-      { context.globals.animate = true;
-        context.globals.graphics_state.animation_time = 90000;
-        this.shader = context.shaders_in_use["Phong_Model"];
-        var shapes = { "torus": Torus.prototype.auto_flat_shaded_version( 25, 25 ) };
-        shapes.torus.indexed = false;             // Just to additionally test non-indexed shapes somewhere, use the fact that in this 
-        this.submit_shapes( context, shapes );    // flat-shaded shape (no shared vertices) the index list is redundant.
-      },
-    'display'( graphics_state )
-      { var t = graphics_state.animation_time/500,   funny_orbit = rotation(  90*t, [ Math.cos(t), Math.sin(t), .7*Math.cos(t) ] );
-        graphics_state.lights = [ new Light( mult_vec( funny_orbit, vec4(  30,  30,  34, 1 ) ), Color( 0, .4, 0, 1 ), 100000               ),
-                                  new Light( mult_vec( funny_orbit, vec4( -10, -20, -14, 0 ) ), Color( 1, 1, .3, 1 ), 100*Math.cos( t/10 ) ) ];
-        for( var j = 0; j < 20; j++ )
-          for( var i = 0; i < 20; i++ )
-          {            
-            var model_transform =                        rotation   ( j * 18 *                  t/60  , 0, 0, 1   );
-                model_transform = mult( model_transform, rotation   ( i * 18 * Math.sin(        t/21 ), 0, 1, 0 ) );
-                model_transform = mult( model_transform, translation( 2 * i  * Math.sin(        t/31 ), 0, 0    ) );
-                model_transform = mult( model_transform, scale      ( 1,  1  + Math.sin( i*18 * t/41 ), 1       ) );
-            
-            this.shapes.torus.draw( graphics_state, model_transform, this.shader.material( Color( i/10, j/20, 0, 1 ), .2, .8, .5, 20 ) );
-          }
-      }
-  }, Scene_Component );
 
-Declare_Any_Class( "Bump_Map_And_Mesh_Loader",     // An example where one teapot has a bump-mapping-like hack, and the other does not.
-  { 'construct'( context )
-      { context.globals.animate = true;
-        context.globals.graphics_state.camera_transform = translation( 0, 0, -5 );
-      
-        var shapes = { "teapot": new Shape_From_File( "teapot.obj" ) };
-        this.submit_shapes( context, shapes );
-        this.define_data_members( { stars: context.shaders_in_use["Phong_Model"  ].material( Color( .5,.5,.5,1 ), .5, .5, .5, 40, context.textures_in_use["stars.png"] ),
-                                    bumps: context.shaders_in_use["Fake_Bump_Map"].material( Color( .5,.5,.5,1 ), .5, .5, .5, 40, context.textures_in_use["stars.png"] )});
-      },
-    'display'( graphics_state )
-      { var t = graphics_state.animation_time;
-        graphics_state.lights = [ new Light( mult_vec( rotation( t/5, 1, 0, 0 ), vec4(  3,  2,  10, 1 ) ), Color( 1, .7, .7, 1 ), 100000 ) ];
-        
-        for( let i of [ -1, 1 ] )
-        { var model_transform = mult( rotation( t/40, 0, 2, 1 ), translation( 2*i, 0, 0 ) );
-              model_transform = mult( model_transform, rotation( t/25, -1, 2, 0 ) );
-          this.shapes.teapot.draw( graphics_state, mult( model_transform, rotation( -90, 1, 0, 0 ) ), i == 1 ? this.stars : this.bumps );
-        }
-      }
-  }, Scene_Component );
-  
-  
   // DISCLAIMER:  The collision method shown below is not used by anyone; it's just very quick to code.  Making every collision body a stretched sphere is kind 
   // of a hack, and looping through a list of discrete sphere points to see if the volumes intersect is *really* a hack (there are perfectly good analytic 
   // expressions that can test if two ellipsoids intersect without discretizing them into points).   On the other hand, for non-convex shapes you're usually going
