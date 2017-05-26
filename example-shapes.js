@@ -268,7 +268,7 @@ Declare_Any_Class( "Square",    // A square, demonstrating shared vertices.  On 
       }
   }, Shape )
 
-Declare_Any_Class( "Square2",    // A square, demonstrating shared vertices.  On any planar surface, the interior edges don't make any important seams.
+Declare_Any_Class( "Square1",    // A square, demonstrating shared vertices.  On any planar surface, the interior edges don't make any important seams.
   { 'populate'()                // In these cases there's no reason not to re-use values of the common vertices between triangles.  This makes all the
       {                         // vertex arrays (position, normals, etc) smaller and more cache friendly.
         this.positions     .push( vec3(-1,-1,0), vec3(1,-1,0), vec3(-1,1,0), vec3(1,1,0) ); // Specify the 4 vertices -- the point cloud that our Square needs.
@@ -278,7 +278,7 @@ Declare_Any_Class( "Square2",    // A square, demonstrating shared vertices.  On
       }
   }, Shape )
 
-Declare_Any_Class( "Square3",    // A square, demonstrating shared vertices.  On any planar surface, the interior edges don't make any important seams.
+Declare_Any_Class( "Square2",    // A square, demonstrating shared vertices.  On any planar surface, the interior edges don't make any important seams.
   { 'populate'()                // In these cases there's no reason not to re-use values of the common vertices between triangles.  This makes all the
       {                         // vertex arrays (position, normals, etc) smaller and more cache friendly.
         this.positions     .push( vec3(-1,-1,0), vec3(1,-1,0), vec3(-1,1,0), vec3(1,1,0) ); // Specify the 4 vertices -- the point cloud that our Square needs.
@@ -293,7 +293,7 @@ Declare_Any_Class( "Square3",    // A square, demonstrating shared vertices.  On
 /**CUSTOM SHAPE**/
 
 
-Declare_Any_Class( "Tri",    // A cube inserts six square strips into its lists.
+Declare_Any_Class( "Wedge",    // A cube inserts six square strips into its lists.
   {
          populate()  
       { 
@@ -301,12 +301,12 @@ Declare_Any_Class( "Tri",    // A cube inserts six square strips into its lists.
         transform=mult(transform, translation(0, 0, Math.sin(radians(60)) ));
         transform=mult(transform, rotation(60, 0, 1, 0));
         Square.prototype.insert_transformed_copy_into( this, [], scale(1,.5,.5));
-        Square2.prototype.insert_transformed_copy_into( this, [], mult(transform, scale(1, .5, .5)) );
+        Square1.prototype.insert_transformed_copy_into( this, [], mult(transform, scale(1, .5, .5)) );
 
         transform=translation(-.5,0,0);
         transform=mult(transform, translation(0, 0, Math.sin(radians(60)) ));
         transform=mult(transform, rotation(-60, 0, 1, 0));
-        Square3.prototype.insert_transformed_copy_into( this, [], mult(transform, scale(1, .5, .5)) );
+        Square2.prototype.insert_transformed_copy_into( this, [], mult(transform, scale(1, .5, .5)) );
 
         transform=translation(0,.5,0);
         transform=mult(transform, rotation(90, 1, 0, 0));

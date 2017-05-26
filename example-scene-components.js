@@ -15,8 +15,9 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
                        "arrow_body":new Capped_Cylinder(20,20),
                        "ground": new Square() ,
                        "bow_segment": new Capped_Cylinder(20, 20),
-                       "arrow_head": new Tri(),
-                       "cube": new Tri(),
+                       "arrow_head": new Wedge(),
+                       "wedge": new Wedge(),
+                       "cube": new Cube(),
                        "collider" : new Subdivision_Sphere(1),
                        "text": new Text_Line( 35 )
                    };
@@ -41,7 +42,6 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
                                     state: context.globals.graphics_state ,
                                     camera_view:0,
                                     score: 0, 
-                                    time:6000,
                                     level:1,
 
                                     /*arrow data*/
@@ -51,6 +51,7 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
                                     angle: 0,
                                     shoot:false,
                                     fire_arrow:false,
+                                    fire_arrows_left:1,
 
                                     yellow_clay: context.shaders_in_use["Phong_Model"].material( Color(  1,  1, .3, 1 ), .2, 1, .7, 40 ),
                                     green_solid: context.shaders_in_use["Phong_Model"].material( Color( .3, .8, .2, 1 ), .2, 1,  1, 40 ), 
@@ -70,9 +71,11 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
       'init_keys'( controls )   // init_keys():  Define any extra keyboard shortcuts here
       { 
         controls.add( "l", this, function() { this.arrow_x +=1; } ); controls.add( "j", this, function() { this.arrow_x -=1; } );
-        controls.add( "i", this, function() { this.angle +=1; } ); controls.add( "k", this, function() { this.angle -=1; } );
-        controls.add( "0", this, function() { this.shoot = true; this.arrows_left--;} );  controls.add( "r", this, function() { this.restart_game(); } ); 
-        controls.add( "9", this, function() { this.fire_arrow = true; } );
+        controls.add( "i", this, function() { this.angle +=1; } ); 
+        controls.add( "k", this, function() { this.angle -=1; } );
+        controls.add( "0", this, function() { this.shoot = true; this.arrows_left--;} );  
+        controls.add( "r", this, function() { this.restart_game(); } ); 
+        controls.add( "9", this, function() { this.fire_arrow = true;} );
         controls.add( "8", this, function() { this.camera_view = 1; } );
         controls.add( "Space", this, function() { this.start_game = true; } );
         controls.add( "8", this, function() { this.camera_view = 0; }, {'type':'keyup'} );
@@ -85,12 +88,17 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
 
       },  
 
-      'draw_target'(graphics_state, x ,y ,z){  
+      'draw_target'(graphics_state, x ,y ,z, s){  
         var t = (graphics_state.animation_time);
 
 
         // Draw Target Body
-        var model_transform=mult(translation(0, 0, -40), this.level==1? translation((x%20+5)*Math.sin(t/1000),0 ,0):rotation( (Math.abs(x-y)%2+1)*t/20, 0, 1, 0));
+        model_transform=translation(0, 0, -80);
+        if(this.level!=1)
+          model_transform=mult(model_transform, rotation( Math.abs(1.5)*t/20, 0, s, 0));
+        model_transform=mult(model_transform, translation(0, 0, 20));
+        if(this.level==1)
+          model_transform=mult(model_transform, translation((15*s)*Math.sin(t/1000),0 ,0));
         model_transform=mult(model_transform, translation(x, y, z));
         model_transform=mult(model_transform, rotation(90, 0 ,1,0));
         body_origin=mult(model_transform, scale(2,2,2));
@@ -230,7 +238,7 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
 
 
       },
-      'restart_game' (graphics_state){
+      'restart_game' (){
             this.x1=0;
             this.y1=0;
             this.z1=0;
@@ -246,9 +254,9 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
             this.camera_view=0;
             this.shoot=false;
             this.fire_arrow=false;
+            this.fire_arrows_left=1;
             this.game_over=false;
             this.level=1;
-            this.time=600;
       },
       'game_over_screen'()
       {
@@ -327,7 +335,7 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
 
     'display'( graphics_state )
     { 
-    if(this.arrows_left == -1)
+    if(this.arrows_left == 0 && this.shoot==0)
       this.game_over=true;
 
     if(this.game_over){
@@ -353,6 +361,10 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
     this.shapes.text.set_string( "Level: " + String(this.level) );  
     this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
 
+    model_transform   = mult( translation( .5, .6, 0 ), font_scale );
+    this.shapes.text.set_string( "Fire Arrows: " + String(this.fire_arrows_left) );  
+    this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
+
 
     /**DRAW SCENE**/
     this.draw_scene(graphics_state);
@@ -363,17 +375,17 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
 
     /**TARGETS**/
     if(!this.start){
-      this.x1=Math.floor(Math.random() * (60)) - 30;
-      this.y1=Math.floor(Math.random() * 20);
-      this.z1=Math.floor(Math.random() * (-30 + 20)) -20;
-      this.x2=Math.floor(Math.random() * (60)) - 30;
-      this.y2=Math.floor(Math.random() * 20);
-      this.z2=Math.floor(Math.random() * (-30 + 20)) -20;
+      this.x1=Math.floor(Math.random()*20) + 8;
+      this.y1=Math.floor(Math.random()*20) + 10;
+      this.z1=Math.floor(Math.random() * -20) -30;
+      this.x2=Math.floor(Math.random() * -20) -8;
+      this.y2=Math.floor(Math.random() * 20) + 5;
+      this.z2=Math.floor(Math.random() *-20) -30;
       this.start=true;
     }
 
-    this.targets.push(this.draw_target(graphics_state, this.x1, this.y1, this.z1));
-    this.targets.push(this.draw_target(graphics_state, this.x2, this.y2, this.z2));
+    this.targets.push(this.draw_target(graphics_state, this.x1, this.y1, this.z1, 1));
+    this.targets.push(this.draw_target(graphics_state, this.x2, this.y2, this.z2, -1));
 
     /**ARROW**/
     if(this.arrow_x > 14)
@@ -387,7 +399,7 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
         this.angle=0;
         this.fire_arrow=false;
       }
-      if(this.arrow_z < -80){
+      if(this.arrow_z < -120){
         this.shoot=false;
         this.angle=0;
         this.fire_arrow=false;
@@ -396,12 +408,11 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
 
     // Adjust arrow angle
         model_transform=mult(model_transform, translation(0,0,5));
-        if(this.angle < 45 && this.angle >= 0 )
+        this.angle%=46;
+        if(this.angle < 0)
+          this.angle=0;
+        else
           model_transform=mult(model_transform, rotation(this.angle, 1, 0, 0 ))
-        else if(this.angle <= 0)
-          this.angle=0; 
-        else if(this.angle>=45)
-          this.angle=45;
         model_transform=mult(model_transform, translation(0, 0 ,-5));
         var arrow_head_transform = model_transform; 
         arrow_head_transform=mult(arrow_head_transform, translation(-this.arrow_x, 4-this.arrow_y, -this.arrow_z ));
@@ -409,7 +420,7 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
       model_transform=mult(model_transform, rotation(180, 0, 1, 0));
 
       var arrow_head;
-      if(this.fire_arrow){
+      if(this.fire_arrow && this.fire_arrows_left){
         arrow_head = mult(model_transform, scale(.5, .5, .25));
         this.shapes.arrow_head.draw( graphics_state, arrow_head, this.fire);
       }
@@ -417,6 +428,8 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
         arrow_head = mult(model_transform, scale(.25, .25, .25));
         this.shapes.arrow_head.draw( graphics_state, arrow_head, this.stars);
       }
+      if(this.fire_arrow && this.arrow_z < -80)
+        this.fire_arrows_left=0;
 
       model_transform=mult(model_transform,translation(0,0,-2.5));
       this.shapes.arrow_body.draw(graphics_state, mult(model_transform, scale(.1, .1, 5)), this.wood);
@@ -432,8 +445,8 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
     var up = vec3(0, 1, 0);
 
     if(this.camera_view){
-      eye=vec3(60, 15, 10);
-      at=vec3(0, 5, -15);
+      eye=vec3(90, 15, 20);
+      at=vec3(0, 15, -35);
     }
 
     graphics_state.camera_transform = lookAt(eye, at, up);
@@ -458,16 +471,15 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
     if( this.check_if_colliding( arrow_head, b) )          // Send the two bodies and the collision shape
       this.score++; 
 
-    if(this.score > 5)
-      if(this.level==1){
-          while(this.time > 0){
+    if(this.score >= 10 && this.level==1)
+    {
           model_transform   = mult( translation( -.1, .4, 0 ), scale(.04, .08 , 2));
           this.shapes.text.set_string( "LEVEL 2");  
           this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
           this.level=2;
-          this.time--;
-      }
     }
+  
+  
 
    this.targets=[];
   }
