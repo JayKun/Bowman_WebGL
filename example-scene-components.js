@@ -90,7 +90,7 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
 
 
         // Draw Target Body
-        var model_transform=mult(translation(0, 0, -40), this.level==1? translation(x*Math.sin(t/1000),0 ,0):rotation((x-y)*t/20, 0, 1, 0));
+        var model_transform=mult(translation(0, 0, -40), this.level==1? translation((x%20+5)*Math.sin(t/1000),0 ,0):rotation((x-y)%10*t/20, 0, 1, 0));
         model_transform=mult(model_transform, translation(x, y, z));
         model_transform=mult(model_transform, rotation(90, 0 ,1,0));
         body_origin=mult(model_transform, scale(2,2,2));
@@ -178,35 +178,35 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
 
         /**GRASS**/
         for (var i = 1; i < 8; i++) {
-        model_transform=mult(translation(-13 + i%3 , -3.6, i*1.5-5), rotation(90, 0, 1, 0));
+        model_transform=mult(translation(-5 + i%3 , -3.6, i*1.5-5), rotation(90, 0, 1, 0));
         model_transform=mult(model_transform, scale(1, 0.5, 1));
         this.shapes.grass.draw(graphics_state, model_transform, this.green_solid);
         }
 
         for (var i = 1; i < 8; i++) {
-        model_transform=mult(translation(13 + i%3 , -3.6, i*1.5-5), rotation(90, 0, 1, 0));
+        model_transform=mult(translation(10 + i%3 , -3.6, i*1.5-5), rotation(90, 0, 1, 0));
         model_transform=mult(model_transform, scale(1, 0.5, 1));
         this.shapes.grass.draw(graphics_state, model_transform, this.green_solid);
         }
 
         /**Trees**/
         for (var i = 1; i < 4 ; i++) {
-            model_transform=mult(translation(15 + i%2 , -2, i*2.5), scale(2, 2, 2));
+            model_transform=mult(translation(18 + i%2 , -2, i*2.5), scale(2, 2, 2));
             this.shapes.tree.draw(graphics_state, model_transform, this.green_solid);
         }
         for (var i = 1; i < 4; i++) {
-            model_transform=mult(translation(16 + i%2 , -2, i*2.5), scale(2, 2, 2));
+            model_transform=mult(translation(19 + i%2 , -2, i*2.5), scale(2, 2, 2));
             this.shapes.tree.draw(graphics_state, model_transform, this.green_solid);
         }
 
         for (var i = 1; i < 4; i++) {
-            model_transform=mult(translation(-16 + i%2 , -2, i*2.5), rotation(90, 0, 1, 0));
+            model_transform=mult(translation(-18 + i%2 , -2, i*2.5), rotation(90, 0, 1, 0));
             model_transform=mult(model_transform, scale(2, 2, 2));
             this.shapes.tree.draw(graphics_state, model_transform, this.green_solid);
         }
 
             for (var i = 1; i < 4; i++) {
-            model_transform=mult(translation(-17 + i%2 , -2, i*2.5), rotation(90, 0, 1, 0));
+            model_transform=mult(translation(-19 + i%2 , -2, i*2.5), rotation(90, 0, 1, 0));
             model_transform=mult(model_transform, scale(2, 2, 2));
             this.shapes.tree.draw(graphics_state, model_transform, this.green_solid);
         }
@@ -431,7 +431,7 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
     var up = vec3(0, 1, 0);
 
     if(this.camera_view){
-      eye=vec3(60, 15 , 0);
+      eye=vec3(60, 15, 10);
       at=vec3(0, 5, -15);
     }
 
