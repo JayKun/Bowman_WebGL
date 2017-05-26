@@ -85,7 +85,6 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
       'update_strings'( debug_screen_object)   // Strings that this Scene_Component contributes to the UI:
       { 
           debug_screen_object.string_map["framerate"]= "Frame Rate: "+ 1000/this.state.animation_delta_time;
-
       },  
 
       'draw_target'(graphics_state, x ,y ,z, s){  
@@ -101,7 +100,7 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
           model_transform=mult(model_transform, translation((15*s)*Math.sin(t/1000),0 ,0));
         model_transform=mult(model_transform, translation(x, y, z));
         model_transform=mult(model_transform, rotation(90, 0 ,1,0));
-        body_origin=mult(model_transform, scale(2,2,2));
+        body_origin=mult(model_transform, scale(4,4,4));
         this.shapes.sphere.draw(graphics_state, body_origin, this.purplePlastic);
 
         //Draw Target Left Wing
@@ -477,6 +476,8 @@ Declare_Any_Class( "Bowman",  // An example of drawing a hierarchical object usi
           this.shapes.text.set_string( "LEVEL 2");  
           this.shapes.text.draw( this.text_graphics_state, model_transform, this.text_material);
           this.level=2;
+          this.arrows_left=5;
+          this.fire_arrows_left=1;
     }
   
   
